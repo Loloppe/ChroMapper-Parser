@@ -4,21 +4,21 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using Options = Automapper.Items.Options;
+using Options = Parser.Items.Options;
 
-namespace Automapper.UI
+namespace Parser.UI
 {
     public class UI
     {
-        private GameObject _automapperMenu;
-        private readonly Automapper _automapper;
+        private GameObject _parserMenu;
+        private readonly Parser _parser;
         private readonly ExtensionButton _extensionBtn = new ExtensionButton();
 
-        public UI(Automapper automapper)
+        public UI(Parser paster)
         {
-            this._automapper = automapper;
+            this._parser = paster;
 
-            Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Automapper.Icon.png");
+            Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Parser.Icon.png");
             byte[] data = new byte[stream.Length];
             stream.Read(data, 0, (int)stream.Length);
 
@@ -26,174 +26,59 @@ namespace Automapper.UI
             texture2D.LoadImage(data);
 
             _extensionBtn.Icon = Sprite.Create(texture2D, new Rect(0, 0, texture2D.width, texture2D.height), new Vector2(0, 0), 100.0f);
-            _extensionBtn.Tooltip = "Automapper";
+            _extensionBtn.Tooltip = "Parser";
             ExtensionButtons.AddButton(_extensionBtn);
         }
-
-        
 
         public void AddMenu(MapEditorUI mapEditorUI)
         {
             CanvasGroup parent = mapEditorUI.MainUIGroup[5];
-            _automapperMenu = new GameObject("Automapper Menu");
-            _automapperMenu.transform.parent = parent.transform;
+            _parserMenu = new GameObject("Parser Menu");
+            _parserMenu.transform.parent = parent.transform;
 
-            AttachTransform(_automapperMenu, 360, 225, 1, 1, 0, 0, 1, 1);
+            AttachTransform(_parserMenu, 260, 150, 1, 1, 0, 0, 1, 1);
 
-            Image image = _automapperMenu.AddComponent<Image>();
+            Image image = _parserMenu.AddComponent<Image>();
             image.sprite = PersistentUI.Instance.Sprites.Background;
             image.type = Image.Type.Sliced;
             image.color = new Color(0.24f, 0.24f, 0.24f);
 
             // Options
-            AddLabel(_automapperMenu.transform, "Light", "Light", new Vector2(-35, -15));
-            AddCheckbox(_automapperMenu.transform, "Fused", "Fused Only", new Vector2(-60, -215), Options.Mapper.GenerateFused, (check) =>
-            {
-                Options.Mapper.GenerateFused = check;
-            });
-            AddCheckbox(_automapperMenu.transform, "Line", "Randomize Line", new Vector2(-125, -215), Options.Mapper.RandomizeLine, (check) =>
-            {
-                Options.Mapper.RandomizeLine = check;
-            });
-            AddCheckbox(_automapperMenu.transform, "Bottom", "Bottom Row Only", new Vector2(-60, -190), Options.Mapper.BottomRowOnly, (check) =>
-            {
-                Options.Mapper.BottomRowOnly = check;
-            });
-            AddCheckbox(_automapperMenu.transform, "UpDown", "Up and Down Only", new Vector2(20, -190), Options.Mapper.UpDownOnly, (check) =>
-            {
-                Options.Mapper.UpDownOnly = check;
-            });
-            AddCheckbox(_automapperMenu.transform, "Ignore Bombs", "Ignore Bombs", new Vector2(20, -55), Options.Light.IgnoreBomb, (check) =>
-            {
-                Options.Light.IgnoreBomb = check;
-            });
-            AddCheckbox(_automapperMenu.transform, "Nerf Strobes", "Nerf Strobes", new Vector2(20, -90), Options.Light.NerfStrobes, (check) =>
-            {
-                Options.Light.NerfStrobes = check;
-            });
-            AddCheckbox(_automapperMenu.transform, "Use Boost Events", "Use Boost Events", new Vector2(20, -125), Options.Light.AllowBoostColor, (check) =>
-            {
-                Options.Light.AllowBoostColor = check;
-            });
+            AddDropdown(_parserMenu.transform, "Type", "", new Vector2(-27, -35));
+            AddDropdown(_parserMenu.transform, "Drop", "", new Vector2(-27, -75));
 
-            AddCheckbox(_automapperMenu.transform, "Wrist Limiter", "Wrist Limiter", new Vector2(20, -160), Options.Mapper.Limiter, (check) =>
+            AddLabel(_parserMenu.transform, "NameTxt", "Name", new Vector2(83, -35));
+            AddTextInput(_parserMenu.transform, "Name", "", new Vector2(58, -75), Options.Parser.Name, (value) =>
             {
-                Options.Mapper.Limiter = check;
-            });
-            AddCheckbox(_automapperMenu.transform, "Timing Only", "Timing Only", new Vector2(-60, -160), Options.Mapper.GenerateAsTiming, (check) =>
-            {
-                Options.Mapper.GenerateAsTiming = check;
-            });
-
-            // Swap, Speed, Boost, BPM
-            AddLabel(_automapperMenu.transform, "Audio", "Audio", new Vector2(100, -15));
-            AddLabel(_automapperMenu.transform, "Audio", "Audio Range", new Vector2(-10, -210));
-            AddLabel(_automapperMenu.transform, "Map", "Map", new Vector2(-150, -170));
-            AddTextInput(_automapperMenu.transform, "Minimum", "Min", new Vector2(35, -210), Options.Mapper.MinRange.ToString(), (value) =>
-            {
-                float res;
-                if (float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture.NumberFormat, out res))
-                {
-                    Options.Mapper.MinRange = res;
-                }
-            });
-            AddTextInput(_automapperMenu.transform, "Max", "Max", new Vector2(110, -210), Options.Mapper.MaxRange.ToString(), (value) =>
-            {
-                float res;
-                if (float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture.NumberFormat, out res))
-                {
-                    Options.Mapper.MaxRange = res;
-                }
-            });
-            AddTextInput(_automapperMenu.transform, "Indistinguishable Range", "Indistinguishable Range", new Vector2(110, -190), Options.Mapper.IndistinguishableRange.ToString(), (value) =>
-            {
-                float res;
-                if (float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture.NumberFormat, out res))
-                {
-                    Options.Mapper.IndistinguishableRange = res;
-                }
-            });
-            AddTextInput(_automapperMenu.transform, "Color Swap Speed", "Speed", new Vector2(-90, -50), Options.Light.ColorSwap.ToString(), (value) =>
-            {
-                float res;
-                if (float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture.NumberFormat, out res))
-                {
-                    Options.Light.ColorSwap = res;
-                }
-            });
-            AddTextInput(_automapperMenu.transform, "Color Offset", "Offset", new Vector2(-90, -85), Options.Light.ColorOffset.ToString(), (value) =>
-            {
-                float res;
-                if (float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture.NumberFormat, out res))
-                {
-                    Options.Light.ColorOffset = res;
-                }
-            });
-            AddTextInput(_automapperMenu.transform, "Color Swap Boost", "Boost", new Vector2(-90, -120), Options.Light.ColorBoostSwap.ToString(), (value) =>
-            {
-                float res;
-                if (float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture.NumberFormat, out res))
-                {
-                    Options.Light.ColorBoostSwap = res;
-                }
-            });
-            AddTextInput(_automapperMenu.transform, "OnsetSensitivity", "Onset Sensitivity", new Vector2(110, -155), Options.Mapper.OnsetSensitivity.ToString(), (value) =>
-            {
-                float res;
-                if (float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture.NumberFormat, out res))
-                {
-                    Options.Mapper.OnsetSensitivity = res;
-                }
-            });
-            AddTextInput(_automapperMenu.transform, "DoubleThreshold", "Double Threshold", new Vector2(110, -120), Options.Mapper.DoubleThreshold.ToString(), (value) =>
-            {
-                float res;
-                if (float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture.NumberFormat, out res))
-                {
-                    Options.Mapper.DoubleThreshold = res;
-                }
-            });
-            AddTextInput(_automapperMenu.transform, "MaxSpeed", "Max Speed", new Vector2(110, -50), Options.Mapper.MaxSpeed.ToString(), (value) =>
-            {
-                float res;
-                if (float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture.NumberFormat, out res))
-                {
-                    Options.Mapper.MaxSpeed = res;
-                }
-            });
-            AddTextInput(_automapperMenu.transform, "MaxDoubleSpeed", "Max Double Speed", new Vector2(110, -85), Options.Mapper.MaxDoubleSpeed.ToString(), (value) =>
-            {
-                float res;
-                if (float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture.NumberFormat, out res))
-                {
-                    Options.Mapper.MaxDoubleSpeed = res;
-                }
+                Options.Parser.Name = value;
             });
 
             // Button
-            AddLabel(_automapperMenu.transform, "Algorithm", "Algorithm", new Vector2(-150, -15));
-            AddButton(_automapperMenu.transform, "GenAudio", "Audio", new Vector2(-150, -50), () =>
+            AddButton(_parserMenu.transform, "Remove", "Remove", new Vector2(-87, -35), () =>
             {
-                _automapper.Audio();
+                _parser.Remove();
             });
-            AddButton(_automapperMenu.transform, "GenMap", "Map", new Vector2(-150, -85), () =>
+            AddButton(_parserMenu.transform, "Copy", "Copy", new Vector2(-87, -75), () =>
             {
-                _automapper.Converter();
+                _parser.Copy();
             });
-            AddButton(_automapperMenu.transform, "GenLight", "Light", new Vector2(-150, -120), () =>
+            AddButton(_parserMenu.transform, "Paste", "Paste", new Vector2(-87, -115), () =>
             {
-                _automapper.Light();
+                _parser.Paste();
             });
 
-            _automapperMenu.SetActive(false);
+            AddButton(_parserMenu.transform, "Rename", "Rename", new Vector2(86, -115), () =>
+            {
+                _parser.Rename();
+            });
+
+            _parserMenu.SetActive(false);
             _extensionBtn.Click = () =>
             {
-                _automapperMenu.SetActive(!_automapperMenu.activeSelf);
+                _parserMenu.SetActive(!_parserMenu.activeSelf);
             };
         }
 
-        // i ended up copying Top_Cat's CM-JS UI helper, too useful to make my own tho
-        // after askin TC if it's one of the only way, he let me use this
         private void AddButton(Transform parent, string title, string text, Vector2 pos, UnityAction onClick)
         {
             var button = Object.Instantiate(PersistentUI.Instance.ButtonPrefab, parent);
@@ -247,33 +132,75 @@ namespace Automapper.UI
             textInput.InputField.textComponent.fontSize = 10;
 
             textInput.InputField.onValueChanged.AddListener(onChange);
+            textInput.InputField.Select();
+            textInput.InputField.ActivateInputField();
         }
 
-        private void AddCheckbox(Transform parent, string title, string text, Vector2 pos, bool value, UnityAction<bool> onClick)
+        private void AddDropdown(Transform parent, string title, string text, Vector2 pos)
         {
             var entryLabel = new GameObject(title + " Label", typeof(TextMeshProUGUI));
             var rectTransform = ((RectTransform)entryLabel.transform);
             rectTransform.SetParent(parent);
-            MoveTransform(rectTransform, 50, 16, 0.45f, 1, pos.x + 10, pos.y + 5);
+
+            MoveTransform(rectTransform, 50, 16, 0.5f, 1, pos.x - 27.5f, pos.y);
             var textComponent = entryLabel.GetComponent<TextMeshProUGUI>();
 
             textComponent.name = title;
             textComponent.font = PersistentUI.Instance.ButtonPrefab.Text.font;
-            textComponent.alignment = TextAlignmentOptions.Left;
+            textComponent.alignment = TextAlignmentOptions.Right;
             textComponent.fontSize = 12;
             textComponent.text = text;
 
-            var original = GameObject.Find("Strobe Generator").GetComponentInChildren<Toggle>(true);
-            var toggleObject = Object.Instantiate(original, parent.transform);
-            MoveTransform(toggleObject.transform, 100, 25, 0.5f, 1, pos.x, pos.y);
+            var dropdown = Object.Instantiate(PersistentUI.Instance.DropdownPrefab, parent);
+            MoveTransform(dropdown.transform, 100, 20, 0.5f, 1, pos.x + 27.5f, pos.y);
+            dropdown.GetComponent<Image>().pixelsPerUnitMultiplier = 3;
+            dropdown.Dropdown.options.Clear();
 
-            var toggleComponent = toggleObject.GetComponent<Toggle>();
-            var colorBlock = toggleComponent.colors;
-            colorBlock.normalColor = Color.white;
-            toggleComponent.colors = colorBlock;
-            toggleComponent.isOn = value;
+            if(title == "Drop")
+            {
+                Parser.dropdown = dropdown;
+            }
+            if (title == "Type")
+            {
+                var ev = new TMP_Dropdown.OptionData
+                {
+                    text = "Event"
+                };
+                var no = new TMP_Dropdown.OptionData
+                {
+                    text = "Note"
+                };
+                var obs = new TMP_Dropdown.OptionData
+                {
+                    text = "Obstacle"
+                };
+                dropdown.Dropdown.options.Add(ev);
+                dropdown.Dropdown.options.Add(no);
+                dropdown.Dropdown.options.Add(obs);
+                dropdown.Dropdown.onValueChanged.AddListener(TypeChange);
+                Parser.type = dropdown;
+            }
+        }
 
-            toggleComponent.onValueChanged.AddListener(onClick);
+        private void TypeChange(int type)
+        {
+            Parser.dropdown.Dropdown.options.Clear();
+
+            if (type == 0)
+            {
+                Parser.dropdown.Dropdown.options.AddRange(Parser.eventOptions);
+            }
+            else if(type == 1)
+            {
+                Parser.dropdown.Dropdown.options.AddRange(Parser.noteOptions);
+            }
+            else if(type == 2)
+            {
+                Parser.dropdown.Dropdown.options.AddRange(Parser.obstacleOptions);
+            }
+
+            Parser.dropdown.Dropdown.value = Parser.dropdown.Dropdown.options.Count - 1;
+            Parser.dropdown.Dropdown.RefreshShownValue();
         }
 
         private RectTransform AttachTransform(GameObject obj, float sizeX, float sizeY, float anchorX, float anchorY, float anchorPosX, float anchorPosY, float pivotX = 0.5f, float pivotY = 0.5f)
