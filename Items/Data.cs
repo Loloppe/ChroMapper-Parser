@@ -1,7 +1,5 @@
-﻿using SimpleJSON;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
-using static MapEvent;
 
 namespace Parser.Items
 {
