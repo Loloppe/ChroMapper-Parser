@@ -37,7 +37,7 @@ namespace Parser.UI
             _parserMenu = new GameObject("Parser Menu");
             _parserMenu.transform.parent = parent.transform;
 
-            AttachTransform(_parserMenu, 260, 150, 1, 1, 0, 0, 1, 1);
+            AttachTransform(_parserMenu, 260, 190, 1, 1, 0, 0, 1, 1);
 
             Image image = _parserMenu.AddComponent<Image>();
             image.sprite = PersistentUI.Instance.Sprites.Background;
@@ -71,6 +71,15 @@ namespace Parser.UI
             AddButton(_parserMenu.transform, "Rename", "Rename", new Vector2(86, -115), () =>
             {
                 _parser.Rename();
+            });
+
+            AddButton(_parserMenu.transform, "Load", "Load", new Vector2(86, -155), () =>
+            {
+                _parser.Load();
+            });
+            AddButton(_parserMenu.transform, "Save", "Save", new Vector2(-87, -155), () =>
+            {
+                _parser.Save();
             });
 
             _parserMenu.SetActive(false);
@@ -189,15 +198,15 @@ namespace Parser.UI
 
             if (type == 0)
             {
-                Parser.dropdown.Dropdown.options.AddRange(Parser.eventOptions);
+                Parser.dropdown.Dropdown.options.AddRange(Parser.data.EventOptions);
             }
             else if(type == 1)
             {
-                Parser.dropdown.Dropdown.options.AddRange(Parser.noteOptions);
+                Parser.dropdown.Dropdown.options.AddRange(Parser.data.NoteOptions);
             }
             else if(type == 2)
             {
-                Parser.dropdown.Dropdown.options.AddRange(Parser.obstacleOptions);
+                Parser.dropdown.Dropdown.options.AddRange(Parser.data.ObstacleOptions);
             }
 
             Parser.dropdown.Dropdown.value = Parser.dropdown.Dropdown.options.Count - 1;

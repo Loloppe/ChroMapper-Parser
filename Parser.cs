@@ -26,6 +26,8 @@ using UnityEngine.SceneManagement;
 using Parser.Items;
 using UnityEngine;
 using TMPro;
+using System.IO;
+using SimpleJSON;
 
 namespace Parser
 {
@@ -33,18 +35,13 @@ namespace Parser
     public class Parser
     {
         private UI.UI _ui;
-        static public BeatSaberSongContainer _beatSaberSongContainer;
+        static internal BeatSaberSongContainer _beatSaberSongContainer;
         private NotesContainer _notesContainer;
         private EventsContainer _eventsContainer;
         private ObstaclesContainer _obstaclesContainer;
-        static public UIDropdown dropdown;
-        static public UIDropdown type;
-        static public List<TMP_Dropdown.OptionData> noteOptions;
-        static public List<TMP_Dropdown.OptionData> eventOptions;
-        static public List<TMP_Dropdown.OptionData> obstacleOptions;
-        private List<List<MapEvent>> events;
-        private List<List<BeatmapNote>> notes;
-        private List<List<BeatmapObstacle>> obstacles;
+        static internal UIDropdown dropdown;
+        static internal UIDropdown type;
+        static internal Data data;
 
         [Init]
         private void Init()
@@ -62,12 +59,15 @@ namespace Parser
                 _obstaclesContainer = Object.FindObjectOfType<ObstaclesContainer>();
                 _beatSaberSongContainer = Object.FindObjectOfType<BeatSaberSongContainer>();
 
-                events = new List<List<MapEvent>>();
-                notes = new List<List<BeatmapNote>>();
-                obstacles = new List<List<BeatmapObstacle>>();
-                noteOptions = new List<TMP_Dropdown.OptionData>();
-                eventOptions = new List<TMP_Dropdown.OptionData>();
-                obstacleOptions = new List<TMP_Dropdown.OptionData>();
+                data = new Data
+                {
+                    Events = new List<List<MapEvent>>(),
+                    Notes = new List<List<BeatmapNote>>(),
+                    Obstacles = new List<List<BeatmapObstacle>>(),
+                    NoteOptions = new List<TMP_Dropdown.OptionData>(),
+                    EventOptions = new List<TMP_Dropdown.OptionData>(),
+                    ObstacleOptions = new List<TMP_Dropdown.OptionData>()
+                };
 
                 MapEditorUI mapEditorUI = Object.FindObjectOfType<MapEditorUI>();
                 _ui.AddMenu(mapEditorUI);
@@ -104,14 +104,14 @@ namespace Parser
                     dropdown.Dropdown.value = dropdown.Dropdown.options.Count - 1;
                     dropdown.Dropdown.RefreshShownValue();
 
-                    eventOptions.Add(dd);
+                    data.EventOptions.Add(dd);
 
                     List<MapEvent> list = new List<MapEvent>();
                     foreach (var x in select)
                     {
                         list.Add(x);
                     }
-                    events.Add(list);
+                    data.Events.Add(list);
                 }
             }
             else if (type.Dropdown.value == 1)
@@ -142,14 +142,14 @@ namespace Parser
                     dropdown.Dropdown.value = dropdown.Dropdown.options.Count - 1;
                     dropdown.Dropdown.RefreshShownValue();
 
-                    noteOptions.Add(dd);
+                    data.NoteOptions.Add(dd);
 
                     List<BeatmapNote> list = new List<BeatmapNote>();
                     foreach (var x in select)
                     {
                         list.Add(x);
                     }
-                    notes.Add(list);
+                    data.Notes.Add(list);
                 }
             }
             else if (type.Dropdown.value == 2)
@@ -180,14 +180,14 @@ namespace Parser
                     dropdown.Dropdown.value = dropdown.Dropdown.options.Count - 1;
                     dropdown.Dropdown.RefreshShownValue();
 
-                    obstacleOptions.Add(dd);
+                    data.ObstacleOptions.Add(dd);
 
                     List<BeatmapObstacle> list = new List<BeatmapObstacle>();
                     foreach (var x in select)
                     {
                         list.Add(x);
                     }
-                    obstacles.Add(list);
+                    data.Obstacles.Add(list);
                 }
             }
         }
@@ -199,9 +199,9 @@ namespace Parser
             {
                 if (type.Dropdown.value == 0)
                 {
-                    if (events[dropdown.Dropdown.value].Count > 0)
+                    if (data.Events[dropdown.Dropdown.value].Count > 0)
                     {
-                        List<MapEvent> toSpawn = new List<MapEvent>(events[dropdown.Dropdown.value]);
+                        List<MapEvent> toSpawn = new List<MapEvent>(data.Events[dropdown.Dropdown.value]);
 
                         foreach (var ev in toSpawn)
                         {
@@ -221,9 +221,9 @@ namespace Parser
                 }
                 else if (type.Dropdown.value == 1)
                 {
-                    if (notes[dropdown.Dropdown.value].Count > 0)
+                    if (data.Notes[dropdown.Dropdown.value].Count > 0)
                     {
-                        List<BeatmapNote> toSpawn = new List<BeatmapNote>(notes[dropdown.Dropdown.value]);
+                        List<BeatmapNote> toSpawn = new List<BeatmapNote>(data.Notes[dropdown.Dropdown.value]);
 
                         foreach (var note in toSpawn)
                         {
@@ -243,9 +243,9 @@ namespace Parser
                 }
                 else if (type.Dropdown.value == 2)
                 {
-                    if (obstacles[dropdown.Dropdown.value].Count > 0)
+                    if (data.Obstacles[dropdown.Dropdown.value].Count > 0)
                     {
-                        List<BeatmapObstacle> toSpawn = new List<BeatmapObstacle>(obstacles[dropdown.Dropdown.value]);
+                        List<BeatmapObstacle> toSpawn = new List<BeatmapObstacle>(data.Obstacles[dropdown.Dropdown.value]);
 
                         foreach (var obs in toSpawn)
                         {
@@ -272,18 +272,18 @@ namespace Parser
             {
                 if (type.Dropdown.value == 0)
                 {
-                    events.RemoveAt(dropdown.Dropdown.value);
-                    eventOptions.RemoveAt(dropdown.Dropdown.value);
+                    data.Events.RemoveAt(dropdown.Dropdown.value);
+                    data.EventOptions.RemoveAt(dropdown.Dropdown.value);
                 }
                 else if (type.Dropdown.value == 1)
                 {
-                    notes.RemoveAt(dropdown.Dropdown.value);
-                    noteOptions.RemoveAt(dropdown.Dropdown.value);
+                    data.Notes.RemoveAt(dropdown.Dropdown.value);
+                    data.NoteOptions.RemoveAt(dropdown.Dropdown.value);
                 }
                 else if (type.Dropdown.value == 2)
                 {
-                    obstacles.RemoveAt(dropdown.Dropdown.value);
-                    obstacleOptions.RemoveAt(dropdown.Dropdown.value);
+                    data.Obstacles.RemoveAt(dropdown.Dropdown.value);
+                    data.ObstacleOptions.RemoveAt(dropdown.Dropdown.value);
                 }
                 dropdown.Dropdown.options.RemoveAt(dropdown.Dropdown.value);
                 dropdown.Dropdown.value--;
@@ -302,6 +302,208 @@ namespace Parser
                 dropdown.Dropdown.options[dropdown.Dropdown.value].text = Options.Parser.Name;
                 dropdown.Dropdown.RefreshShownValue();
             }
+        }
+
+        public void Load()
+        {
+            try
+            {
+                var path = System.AppDomain.CurrentDomain.BaseDirectory + "/Plugins/Parser/" + Options.Parser.Name + ".json";
+                data = new Data
+                {
+                    Events = new List<List<MapEvent>>(),
+                    Notes = new List<List<BeatmapNote>>(),
+                    Obstacles = new List<List<BeatmapObstacle>>(),
+                    EventOptions = new List<TMP_Dropdown.OptionData>(),
+                    NoteOptions = new List<TMP_Dropdown.OptionData>(),
+                    ObstacleOptions = new List<TMP_Dropdown.OptionData>()
+                };
+                dropdown.Dropdown.options.Clear();
+                JsonData da = new JsonData();
+                da = ReadFromJsonFile<JsonData>(path);
+
+                for (int j = 0; j < da.Events.Count; j++)
+                {
+                    data.Events.Add(new List<MapEvent>());
+                    data.EventOptions.Add(new TMP_Dropdown.OptionData(da.EventOptions[j]));
+                    for (int i = 0; i < da.Events[j].Count; i++)
+                    {
+                        if(da.Events[j][i].CustomData != null)
+                        {
+                            List<char> charsToRemove = new List<char>() { '\"' };
+                            da.Events[j][i].CustomData = Filter(da.Events[j][i].CustomData, charsToRemove);
+                            MapEvent e = new MapEvent(da.Events[j][i].Time, da.Events[j][i].Type, da.Events[j][i].Value, JSONNode.Parse(da.Events[j][i].CustomData));
+                            data.Events[j].Add(e);
+                        }
+                        else
+                        {
+                            MapEvent e = new MapEvent(da.Events[j][i].Time, da.Events[j][i].Type, da.Events[j][i].Value);
+                            data.Events[j].Add(e);
+                        }
+                    }
+                }
+
+                for (int j = 0; j < da.Notes.Count; j++)
+                {
+                    data.Notes.Add(new List<BeatmapNote>());
+                    data.NoteOptions.Add(new TMP_Dropdown.OptionData(da.NoteOptions[j]));
+                    for (int i = 0; i < da.Notes[j].Count; i++)
+                    {
+                        if (da.Notes[j][i].CustomData != null)
+                        {
+                            List<char> charsToRemove = new List<char>() { '\"' };
+                            da.Notes[j][i].CustomData = Filter(da.Notes[j][i].CustomData, charsToRemove);
+                            BeatmapNote n = new BeatmapNote(da.Notes[j][i].Time, da.Notes[j][i].LineIndex, da.Notes[j][i].LineLayer, da.Notes[j][i].Type, da.Notes[j][i].CutDirection, JSONNode.Parse(da.Notes[j][i].CustomData));
+                            data.Notes[j].Add(n);
+                        }
+                        else
+                        {
+                            BeatmapNote n = new BeatmapNote(da.Notes[j][i].Time, da.Notes[j][i].LineIndex, da.Notes[j][i].LineLayer, da.Notes[j][i].Type, da.Notes[j][i].CutDirection);
+                            data.Notes[j].Add(n);
+                        }
+                    }
+                }
+
+                for (int j = 0; j < da.Obstacles.Count; j++)
+                {
+                    data.Obstacles.Add(new List<BeatmapObstacle>());
+                    data.ObstacleOptions.Add(new TMP_Dropdown.OptionData(da.ObstacleOptions[j]));
+                    for (int i = 0; i < da.Obstacles[j].Count; i++)
+                    {
+                        if (da.Obstacles[j][i].CustomData != null)
+                        {
+                            List<char> charsToRemove = new List<char>() { '\"' };
+                            data.Obstacles[j][i].CustomData = Filter(data.Obstacles[j][i].CustomData, charsToRemove);
+                            BeatmapObstacle e = new BeatmapObstacle(da.Obstacles[j][i].Time, da.Obstacles[j][i].LineIndex, da.Obstacles[j][i].Type, da.Obstacles[j][i].Duration, da.Obstacles[j][i].Width, JSONNode.Parse(da.Obstacles[j][i].CustomData));
+                            data.Obstacles[j].Add(e);
+                        }
+                        else
+                        {
+                            BeatmapObstacle e = new BeatmapObstacle(da.Obstacles[j][i].Time, da.Obstacles[j][i].LineIndex, da.Obstacles[j][i].Type, da.Obstacles[j][i].Duration, da.Obstacles[j][i].Width);
+                            data.Obstacles[j].Add(e);
+                        }
+                    }
+                }
+
+                dropdown.Dropdown.value = 1;
+                dropdown.Dropdown.value = 0;
+                type.Dropdown.value = 1;
+                type.Dropdown.value = 0;
+                dropdown.Dropdown.RefreshShownValue();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError(e.Message);
+            }
+        }
+
+        public void Save()
+        {
+            try
+            {
+                Directory.CreateDirectory(System.AppDomain.CurrentDomain.BaseDirectory + "/Plugins/Parser/");
+                var path = System.AppDomain.CurrentDomain.BaseDirectory + "/Plugins/Parser/" + Options.Parser.Name + ".json";
+
+                List<List<Event>> events = new List<List<Event>>();
+                List<string> eventsOptions = new List<string>();
+
+                for (int j = 0; j < data.Events.Count; j++)
+                {
+                    events.Add(new List<Event>());
+                    eventsOptions.Add(data.EventOptions[j].text);
+                    for (int i = 0; i < data.Events[j].Count; i++)
+                    {
+                        Event e = new Event(data.Events[j][i]);
+                        events[j].Add(e);
+                    }
+                }
+
+                List<List<Note>> notes = new List<List<Note>>();
+                List<string> notesOptions = new List<string>();
+
+                for (int j = 0; j < data.Notes.Count; j++)
+                {
+                    notes.Add(new List<Note>());
+                    notesOptions.Add(data.NoteOptions[j].text);
+                    for (int i = 0; i < data.Notes[j].Count; i++)
+                    {
+                        Note e = new Note(data.Notes[j][i]);
+                        notes[j].Add(e);
+                    }
+                }
+
+                List<List<Obstacle>> obstacles = new List<List<Obstacle>>();
+                List<string> obstaclesOptions = new List<string>();
+
+                for (int j = 0; j < data.Obstacles.Count; j++)
+                {
+                    obstacles.Add(new List<Obstacle>());
+                    obstaclesOptions.Add(data.ObstacleOptions[j].text);
+                    for (int i = 0; i < data.Obstacles[j].Count; i++)
+                    {
+                        Obstacle e = new Obstacle(data.Obstacles[j][i]);
+                        obstacles[j].Add(e);
+                    }
+                }
+
+                JsonData jsonData = new JsonData
+                {
+                    Events = events,
+                    Notes = notes,
+                    Obstacles = obstacles,
+                    EventOptions = eventsOptions,
+                    NoteOptions = notesOptions,
+                    ObstacleOptions = obstaclesOptions
+                };
+
+                WriteToJsonFile(path, jsonData);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError(e.Message);
+            }
+        }
+
+        public static void WriteToJsonFile<T>(string filePath, T objectToWrite, bool append = false) where T : new()
+        {
+            TextWriter writer = null;
+            try
+            {
+                var contentsToWriteToFile = Newtonsoft.Json.JsonConvert.SerializeObject(objectToWrite);
+                writer = new StreamWriter(filePath, append);
+                writer.Write(contentsToWriteToFile);
+            }
+            finally
+            {
+                if (writer != null)
+                    writer.Close();
+            }
+        }
+
+        public static T ReadFromJsonFile<T>(string filePath) where T : new()
+        {
+            TextReader reader = null;
+            try
+            {
+                reader = new StreamReader(filePath);
+                var fileContents = reader.ReadToEnd();
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(fileContents);
+            }
+            finally
+            {
+                if (reader != null)
+                    reader.Close();
+            }
+        }
+
+        public static string Filter(string str, List<char> charsToRemove)
+        {
+            foreach (char c in charsToRemove)
+            {
+                str = str.Replace(c.ToString(), System.String.Empty);
+            }
+
+            return str;
         }
 
         [Exit]
