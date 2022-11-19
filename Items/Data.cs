@@ -8,8 +8,8 @@ namespace Parser.Items
         public List<TMP_Dropdown.OptionData> NoteOptions { get; set; }
         public List<TMP_Dropdown.OptionData> EventOptions { get; set; }
         public List<TMP_Dropdown.OptionData> ObstacleOptions { get; set; }
-        public List<List<MapEvent>> Events { get; set; }
         public List<List<BeatmapNote>> Notes { get; set; }
+        public List<List<MapEvent>> Events { get; set; }
         public List<List<BeatmapObstacle>> Obstacles { get; set; }
     }
 

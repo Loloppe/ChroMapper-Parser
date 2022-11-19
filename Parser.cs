@@ -41,7 +41,9 @@ namespace Parser
         private ObstaclesContainer _obstaclesContainer;
         static internal UIDropdown dropdown;
         static internal UIDropdown type;
+        static internal UITextInput name;
         static internal Data data;
+        internal AudioTimeSyncController atsc;
 
         [Init]
         private void Init()
@@ -68,6 +70,9 @@ namespace Parser
                     EventOptions = new List<TMP_Dropdown.OptionData>(),
                     ObstacleOptions = new List<TMP_Dropdown.OptionData>()
                 };
+
+                name = new UITextInput();
+                atsc = Object.FindObjectOfType<AudioTimeSyncController>();
 
                 MapEditorUI mapEditorUI = Object.FindObjectOfType<MapEditorUI>();
                 _ui.AddMenu(mapEditorUI);
@@ -97,7 +102,7 @@ namespace Parser
                 {
                     var dd = new TMP_Dropdown.OptionData
                     {
-                        text = Options.Parser.Name
+                        text = name.InputField.text
                     };
 
                     dropdown.Dropdown.options.Add(dd);
@@ -135,7 +140,7 @@ namespace Parser
                 {
                     var dd = new TMP_Dropdown.OptionData
                     {
-                        text = Options.Parser.Name
+                        text = name.InputField.text
                     };
 
                     dropdown.Dropdown.options.Add(dd);
@@ -173,7 +178,7 @@ namespace Parser
                 {
                     var dd = new TMP_Dropdown.OptionData
                     {
-                        text = Options.Parser.Name
+                        text = name.InputField.text
                     };
 
                     dropdown.Dropdown.options.Add(dd);
@@ -206,8 +211,7 @@ namespace Parser
                         foreach (var ev in toSpawn)
                         {
                             var e = new MapEvent(ev.ConvertToJson());
-                            AudioTimeSyncController atsc = Object.FindObjectOfType<AudioTimeSyncController>();
-                            e.Time += atsc.CurrentBeat - toSpawn[0].Time;
+                            e.Time = (e.Time - toSpawn[0].Time) + atsc.CurrentBeat;
                             _eventsContainer.SpawnObject(e, false, false);
                             selection.Add(e);
                         }
@@ -228,8 +232,7 @@ namespace Parser
                         foreach (var note in toSpawn)
                         {
                             var no = new BeatmapNote(note.ConvertToJson());
-                            AudioTimeSyncController atsc = Object.FindObjectOfType<AudioTimeSyncController>();
-                            no.Time += atsc.CurrentBeat - toSpawn[0].Time;
+                            no.Time = (no.Time - toSpawn[0].Time) + atsc.CurrentBeat;
                             _notesContainer.SpawnObject(no, false, false);
                             selection.Add(no);
                         }
@@ -250,8 +253,7 @@ namespace Parser
                         foreach (var obs in toSpawn)
                         {
                             var ob = new BeatmapObstacle(obs.ConvertToJson());
-                            AudioTimeSyncController atsc = Object.FindObjectOfType<AudioTimeSyncController>();
-                            ob.Time += atsc.CurrentBeat - toSpawn[0].Time;
+                            ob.Time = (ob.Time - toSpawn[0].Time) + atsc.CurrentBeat;
                             _obstaclesContainer.SpawnObject(ob, false, false);
                             selection.Add(ob);
                         }
@@ -299,16 +301,25 @@ namespace Parser
         {
             if (dropdown.Dropdown.options.Count > 0)
             {
-                dropdown.Dropdown.options[dropdown.Dropdown.value].text = Options.Parser.Name;
+                dropdown.Dropdown.options[dropdown.Dropdown.value].text = name.InputField.text;
                 dropdown.Dropdown.RefreshShownValue();
             }
+        }
+
+        public void SetName()
+        {
+            string text = name.InputField.text;
+            Helper.ShowInputDialog(ref text);
+            name.InputField.text = text;
+            name.gameObject.SetActive(false);
+            name.gameObject.SetActive(true);
         }
 
         public void Load()
         {
             try
             {
-                var path = System.AppDomain.CurrentDomain.BaseDirectory + "/Plugins/Parser/" + Options.Parser.Name + ".json";
+                var path = System.AppDomain.CurrentDomain.BaseDirectory + "/Plugins/Parser/" + name.InputField.text + ".json";
                 data = new Data
                 {
                     Events = new List<List<MapEvent>>(),
@@ -320,7 +331,7 @@ namespace Parser
                 };
                 dropdown.Dropdown.options.Clear();
                 JsonData da = new JsonData();
-                da = ReadFromJsonFile<JsonData>(path);
+                da = Helper.ReadFromJsonFile<JsonData>(path);
 
                 for (int j = 0; j < da.Events.Count; j++)
                 {
@@ -331,7 +342,7 @@ namespace Parser
                         if(da.Events[j][i].CustomData != null)
                         {
                             List<char> charsToRemove = new List<char>() { '\"' };
-                            da.Events[j][i].CustomData = Filter(da.Events[j][i].CustomData, charsToRemove);
+                            da.Events[j][i].CustomData = Helper.Filter(da.Events[j][i].CustomData, charsToRemove);
                             MapEvent e = new MapEvent(da.Events[j][i].Time, da.Events[j][i].Type, da.Events[j][i].Value, JSONNode.Parse(da.Events[j][i].CustomData));
                             data.Events[j].Add(e);
                         }
@@ -352,7 +363,7 @@ namespace Parser
                         if (da.Notes[j][i].CustomData != null)
                         {
                             List<char> charsToRemove = new List<char>() { '\"' };
-                            da.Notes[j][i].CustomData = Filter(da.Notes[j][i].CustomData, charsToRemove);
+                            da.Notes[j][i].CustomData = Helper.Filter(da.Notes[j][i].CustomData, charsToRemove);
                             BeatmapNote n = new BeatmapNote(da.Notes[j][i].Time, da.Notes[j][i].LineIndex, da.Notes[j][i].LineLayer, da.Notes[j][i].Type, da.Notes[j][i].CutDirection, JSONNode.Parse(da.Notes[j][i].CustomData));
                             data.Notes[j].Add(n);
                         }
@@ -373,7 +384,7 @@ namespace Parser
                         if (da.Obstacles[j][i].CustomData != null)
                         {
                             List<char> charsToRemove = new List<char>() { '\"' };
-                            data.Obstacles[j][i].CustomData = Filter(data.Obstacles[j][i].CustomData, charsToRemove);
+                            data.Obstacles[j][i].CustomData = Helper.Filter(data.Obstacles[j][i].CustomData, charsToRemove);
                             BeatmapObstacle e = new BeatmapObstacle(da.Obstacles[j][i].Time, da.Obstacles[j][i].LineIndex, da.Obstacles[j][i].Type, da.Obstacles[j][i].Duration, da.Obstacles[j][i].Width, JSONNode.Parse(da.Obstacles[j][i].CustomData));
                             data.Obstacles[j].Add(e);
                         }
@@ -402,8 +413,7 @@ namespace Parser
             try
             {
                 Directory.CreateDirectory(System.AppDomain.CurrentDomain.BaseDirectory + "/Plugins/Parser/");
-                var path = System.AppDomain.CurrentDomain.BaseDirectory + "/Plugins/Parser/" + Options.Parser.Name + ".json";
-
+                var path = System.AppDomain.CurrentDomain.BaseDirectory + "/Plugins/Parser/" + name.InputField.text + ".json";
                 List<List<Event>> events = new List<List<Event>>();
                 List<string> eventsOptions = new List<string>();
 
@@ -415,6 +425,16 @@ namespace Parser
                     {
                         Event e = new Event(data.Events[j][i]);
                         events[j].Add(e);
+                    }
+                }
+
+                
+                foreach(var e in events)
+                {
+                    var first = e[0].Time;
+                    foreach(var ev in e)
+                    {
+                        ev.Time -= first;
                     }
                 }
 
@@ -432,6 +452,15 @@ namespace Parser
                     }
                 }
 
+                foreach (var e in notes)
+                {
+                    var first = e[0].Time;
+                    foreach (var ev in e)
+                    {
+                        ev.Time -= first;
+                    }
+                }
+
                 List<List<Obstacle>> obstacles = new List<List<Obstacle>>();
                 List<string> obstaclesOptions = new List<string>();
 
@@ -446,6 +475,15 @@ namespace Parser
                     }
                 }
 
+                foreach (var e in obstacles)
+                {
+                    var first = e[0].Time;
+                    foreach (var ev in e)
+                    {
+                        ev.Time -= first;
+                    }
+                }
+
                 JsonData jsonData = new JsonData
                 {
                     Events = events,
@@ -453,57 +491,15 @@ namespace Parser
                     Obstacles = obstacles,
                     EventOptions = eventsOptions,
                     NoteOptions = notesOptions,
-                    ObstacleOptions = obstaclesOptions
+                    ObstacleOptions = obstaclesOptions,
                 };
 
-                WriteToJsonFile(path, jsonData);
+                Helper.WriteToJsonFile(path, jsonData);
             }
             catch (System.Exception e)
             {
                 Debug.LogError(e.Message);
             }
-        }
-
-        public static void WriteToJsonFile<T>(string filePath, T objectToWrite, bool append = false) where T : new()
-        {
-            TextWriter writer = null;
-            try
-            {
-                var contentsToWriteToFile = Newtonsoft.Json.JsonConvert.SerializeObject(objectToWrite);
-                writer = new StreamWriter(filePath, append);
-                writer.Write(contentsToWriteToFile);
-            }
-            finally
-            {
-                if (writer != null)
-                    writer.Close();
-            }
-        }
-
-        public static T ReadFromJsonFile<T>(string filePath) where T : new()
-        {
-            TextReader reader = null;
-            try
-            {
-                reader = new StreamReader(filePath);
-                var fileContents = reader.ReadToEnd();
-                return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(fileContents);
-            }
-            finally
-            {
-                if (reader != null)
-                    reader.Close();
-            }
-        }
-
-        public static string Filter(string str, List<char> charsToRemove)
-        {
-            foreach (char c in charsToRemove)
-            {
-                str = str.Replace(c.ToString(), System.String.Empty);
-            }
-
-            return str;
         }
 
         [Exit]

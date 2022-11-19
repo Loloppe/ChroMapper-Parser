@@ -4,7 +4,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using Options = Parser.Items.Options;
 
 namespace Parser.UI
 {
@@ -47,13 +46,13 @@ namespace Parser.UI
             AddDropdown(_parserMenu.transform, "Type", "", new Vector2(-27, -35));
             AddDropdown(_parserMenu.transform, "Drop", "", new Vector2(-27, -75));
 
-            AddLabel(_parserMenu.transform, "NameTxt", "Name", new Vector2(83, -35));
-            AddTextInput(_parserMenu.transform, "Name", "", new Vector2(58, -75), Options.Parser.Name, (value) =>
-            {
-                Options.Parser.Name = value;
-            });
+            AddTextInput(_parserMenu.transform, "ShowName", "", new Vector2(57, -35));
 
             // Button
+            AddButton(_parserMenu.transform, "SetName", "Set Name", new Vector2(86, -75), () =>
+            {
+                _parser.SetName();
+            });
             AddButton(_parserMenu.transform, "Remove", "Remove", new Vector2(-87, -35), () =>
             {
                 _parser.Remove();
@@ -101,23 +100,7 @@ namespace Parser.UI
             button.Text.fontSize = 12;
         }
 
-        private void AddLabel(Transform parent, string title, string text, Vector2 pos, Vector2? size = null)
-        {
-            var entryLabel = new GameObject(title + " Label", typeof(TextMeshProUGUI));
-            var rectTransform = ((RectTransform)entryLabel.transform);
-            rectTransform.SetParent(parent);
-
-            MoveTransform(rectTransform, 110, 24, 0.5f, 1, pos.x, pos.y);
-            var textComponent = entryLabel.GetComponent<TextMeshProUGUI>();
-
-            textComponent.name = title;
-            textComponent.font = PersistentUI.Instance.ButtonPrefab.Text.font;
-            textComponent.alignment = TextAlignmentOptions.Center;
-            textComponent.fontSize = 14;
-            textComponent.text = text;
-        }
-
-        private void AddTextInput(Transform parent, string title, string text, Vector2 pos, string value, UnityAction<string> onChange)
+        private void AddTextInput(Transform parent, string title, string text, Vector2 pos)
         {
             var entryLabel = new GameObject(title + " Label", typeof(TextMeshProUGUI));
             var rectTransform = ((RectTransform)entryLabel.transform);
@@ -135,14 +118,15 @@ namespace Parser.UI
             var textInput = Object.Instantiate(PersistentUI.Instance.TextInputPrefab, parent);
             MoveTransform(textInput.transform, 55, 20, 0.5f, 1, pos.x + 27.5f, pos.y);
             textInput.GetComponent<Image>().pixelsPerUnitMultiplier = 3;
-            textInput.InputField.text = value;
+            textInput.InputField.text = "";
             textInput.InputField.onFocusSelectAll = false;
             textInput.InputField.textComponent.alignment = TextAlignmentOptions.Left;
             textInput.InputField.textComponent.fontSize = 10;
 
-            textInput.InputField.onValueChanged.AddListener(onChange);
             textInput.InputField.Select();
             textInput.InputField.ActivateInputField();
+            textInput.name = "Default";
+            Parser.name = textInput;
         }
 
         private void AddDropdown(Transform parent, string title, string text, Vector2 pos)
