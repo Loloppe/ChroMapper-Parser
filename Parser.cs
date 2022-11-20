@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine.SceneManagement;
 using Parser.Items;
 using UnityEngine;
@@ -31,19 +30,19 @@ using SimpleJSON;
 
 namespace Parser
 {
-    [Plugin("Paster")]
+    [Plugin("Parser")]
     public class Parser
     {
         private UI.UI _ui;
         static internal BeatSaberSongContainer _beatSaberSongContainer;
-        private NotesContainer _notesContainer;
-        private EventsContainer _eventsContainer;
-        private ObstaclesContainer _obstaclesContainer;
+        static internal NotesContainer _notesContainer;
+        static internal EventsContainer _eventsContainer;
+        static internal ObstaclesContainer _obstaclesContainer;
         static internal UIDropdown dropdown;
         static internal UIDropdown type;
         static internal UITextInput name;
         static internal Data data;
-        internal AudioTimeSyncController atsc;
+        static internal AudioTimeSyncController atsc;
 
         [Init]
         private void Init()
@@ -81,218 +80,45 @@ namespace Parser
 
         public void Copy()
         {
-            if(type.Dropdown.value == 0)
-            {
-                List<MapEvent> select = null;
-
-                var selection = SelectionController.SelectedObjects;
-                if (selection.Count > 0)
-                {
-                    if (selection.All(x => x is MapEvent))
-                    {
-                        select = new List<MapEvent>(selection.Cast<MapEvent>());
-                    }
-                    else
-                    {
-                        Debug.Log("Paster: Make sure to select only MapEvent");
-                    }
-                }
-
-                if (select != null)
-                {
-                    var dd = new TMP_Dropdown.OptionData
-                    {
-                        text = name.InputField.text
-                    };
-
-                    dropdown.Dropdown.options.Add(dd);
-                    dropdown.Dropdown.value = dropdown.Dropdown.options.Count - 1;
-                    dropdown.Dropdown.RefreshShownValue();
-
-                    data.EventOptions.Add(dd);
-
-                    List<MapEvent> list = new List<MapEvent>();
-                    foreach (var x in select)
-                    {
-                        list.Add(x);
-                    }
-                    data.Events.Add(list);
-                }
-            }
-            else if (type.Dropdown.value == 1)
-            {
-                List<BeatmapNote> select = null;
-
-                var selection = SelectionController.SelectedObjects;
-                if (selection.Count > 0)
-                {
-                    if (selection.All(x => x is BeatmapNote))
-                    {
-                        select = new List<BeatmapNote>(selection.Cast<BeatmapNote>());
-                    }
-                    else
-                    {
-                        Debug.Log("Paster: Make sure to select only Notes");
-                    }
-                }
-
-                if (select != null)
-                {
-                    var dd = new TMP_Dropdown.OptionData
-                    {
-                        text = name.InputField.text
-                    };
-
-                    dropdown.Dropdown.options.Add(dd);
-                    dropdown.Dropdown.value = dropdown.Dropdown.options.Count - 1;
-                    dropdown.Dropdown.RefreshShownValue();
-
-                    data.NoteOptions.Add(dd);
-
-                    List<BeatmapNote> list = new List<BeatmapNote>();
-                    foreach (var x in select)
-                    {
-                        list.Add(x);
-                    }
-                    data.Notes.Add(list);
-                }
-            }
-            else if (type.Dropdown.value == 2)
-            {
-                List<BeatmapObstacle> select = null;
-
-                var selection = SelectionController.SelectedObjects;
-                if (selection.Count > 0)
-                {
-                    if (selection.All(x => x is BeatmapObstacle))
-                    {
-                        select = new List<BeatmapObstacle>(selection.Cast<BeatmapObstacle>());
-                    }
-                    else
-                    {
-                        Debug.Log("Paster: Make sure to select only Obstacles");
-                    }
-                }
-
-                if (select != null)
-                {
-                    var dd = new TMP_Dropdown.OptionData
-                    {
-                        text = name.InputField.text
-                    };
-
-                    dropdown.Dropdown.options.Add(dd);
-                    dropdown.Dropdown.value = dropdown.Dropdown.options.Count - 1;
-                    dropdown.Dropdown.RefreshShownValue();
-
-                    data.ObstacleOptions.Add(dd);
-
-                    List<BeatmapObstacle> list = new List<BeatmapObstacle>();
-                    foreach (var x in select)
-                    {
-                        list.Add(x);
-                    }
-                    data.Obstacles.Add(list);
-                }
-            }
+            var selection = SelectionController.SelectedObjects;
+            int type = Helper.VerifySelection(selection);
+            Helper.CopySelection(selection, type);
         }
+
         public void Paste()
         {
-            var selection = SelectionController.SelectedObjects;
-
-            if (dropdown.Dropdown.options.Count > 0)
-            {
-                if (type.Dropdown.value == 0)
-                {
-                    if (data.Events[dropdown.Dropdown.value].Count > 0)
-                    {
-                        List<MapEvent> toSpawn = new List<MapEvent>(data.Events[dropdown.Dropdown.value]);
-
-                        foreach (var ev in toSpawn)
-                        {
-                            var e = new MapEvent(ev.ConvertToJson());
-                            e.Time = (e.Time - toSpawn[0].Time) + atsc.CurrentBeat;
-                            _eventsContainer.SpawnObject(e, false, false);
-                            selection.Add(e);
-                        }
-
-                        BeatmapObjectContainerCollection.GetCollectionForType(BeatmapObject.ObjectType.Event).RefreshPool(true);
-                    }
-                    else
-                    {
-                        Debug.Log("Paster: No events available");
-                    }
-                }
-                else if (type.Dropdown.value == 1)
-                {
-                    if (data.Notes[dropdown.Dropdown.value].Count > 0)
-                    {
-                        List<BeatmapNote> toSpawn = new List<BeatmapNote>(data.Notes[dropdown.Dropdown.value]);
-
-                        foreach (var note in toSpawn)
-                        {
-                            var no = new BeatmapNote(note.ConvertToJson());
-                            no.Time = (no.Time - toSpawn[0].Time) + atsc.CurrentBeat;
-                            _notesContainer.SpawnObject(no, false, false);
-                            selection.Add(no);
-                        }
-
-                        BeatmapObjectContainerCollection.GetCollectionForType(BeatmapObject.ObjectType.Note).RefreshPool(true);
-                    }
-                    else
-                    {
-                        Debug.Log("Paster: No notes available");
-                    }
-                }
-                else if (type.Dropdown.value == 2)
-                {
-                    if (data.Obstacles[dropdown.Dropdown.value].Count > 0)
-                    {
-                        List<BeatmapObstacle> toSpawn = new List<BeatmapObstacle>(data.Obstacles[dropdown.Dropdown.value]);
-
-                        foreach (var obs in toSpawn)
-                        {
-                            var ob = new BeatmapObstacle(obs.ConvertToJson());
-                            ob.Time = (ob.Time - toSpawn[0].Time) + atsc.CurrentBeat;
-                            _obstaclesContainer.SpawnObject(ob, false, false);
-                            selection.Add(ob);
-                        }
-
-                        BeatmapObjectContainerCollection.GetCollectionForType(BeatmapObject.ObjectType.Obstacle).RefreshPool(true);
-                    }
-                    else
-                    {
-                        Debug.Log("Paster: No obstacles available");
-                    }
-                }
-            }
+            SelectionController.DeselectAll();
+            Helper.PasteSelection();
         }
 
         public void Remove()
         {
             if (dropdown.Dropdown.options.Count > 0)
             {
-                if (type.Dropdown.value == 0)
+                switch(type.Dropdown.value)
                 {
-                    data.Events.RemoveAt(dropdown.Dropdown.value);
-                    data.EventOptions.RemoveAt(dropdown.Dropdown.value);
+                    case 0:
+                        data.Notes.RemoveAt(dropdown.Dropdown.value);
+                        data.NoteOptions.RemoveAt(dropdown.Dropdown.value);
+                        break;
+                    case 1:
+                        data.Events.RemoveAt(dropdown.Dropdown.value);
+                        data.EventOptions.RemoveAt(dropdown.Dropdown.value);
+                        break;
+                    case 2:
+                        data.Obstacles.RemoveAt(dropdown.Dropdown.value);
+                        data.ObstacleOptions.RemoveAt(dropdown.Dropdown.value);
+                        break;
                 }
-                else if (type.Dropdown.value == 1)
-                {
-                    data.Notes.RemoveAt(dropdown.Dropdown.value);
-                    data.NoteOptions.RemoveAt(dropdown.Dropdown.value);
-                }
-                else if (type.Dropdown.value == 2)
-                {
-                    data.Obstacles.RemoveAt(dropdown.Dropdown.value);
-                    data.ObstacleOptions.RemoveAt(dropdown.Dropdown.value);
-                }
+
                 dropdown.Dropdown.options.RemoveAt(dropdown.Dropdown.value);
                 dropdown.Dropdown.value--;
+
                 if(dropdown.Dropdown.value < 0)
                 {
                     dropdown.Dropdown.value = 0;
                 }
+
                 dropdown.Dropdown.RefreshShownValue();
             }
         }

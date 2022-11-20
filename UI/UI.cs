@@ -155,20 +155,20 @@ namespace Parser.UI
             }
             if (title == "Type")
             {
-                var ev = new TMP_Dropdown.OptionData
-                {
-                    text = "Event"
-                };
                 var no = new TMP_Dropdown.OptionData
                 {
                     text = "Note"
+                };
+                var ev = new TMP_Dropdown.OptionData
+                {
+                    text = "Event"
                 };
                 var obs = new TMP_Dropdown.OptionData
                 {
                     text = "Obstacle"
                 };
-                dropdown.Dropdown.options.Add(ev);
                 dropdown.Dropdown.options.Add(no);
+                dropdown.Dropdown.options.Add(ev);
                 dropdown.Dropdown.options.Add(obs);
                 dropdown.Dropdown.onValueChanged.AddListener(TypeChange);
                 Parser.type = dropdown;
@@ -181,11 +181,11 @@ namespace Parser.UI
 
             if (type == 0)
             {
-                Parser.dropdown.Dropdown.options.AddRange(Parser.data.EventOptions);
+                Parser.dropdown.Dropdown.options.AddRange(Parser.data.NoteOptions);
             }
             else if(type == 1)
             {
-                Parser.dropdown.Dropdown.options.AddRange(Parser.data.NoteOptions);
+                Parser.dropdown.Dropdown.options.AddRange(Parser.data.EventOptions);
             }
             else if(type == 2)
             {
